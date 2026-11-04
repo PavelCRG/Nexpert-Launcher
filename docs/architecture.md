@@ -10,6 +10,10 @@ Horizon is a standalone Rust reimplementation with its own launcher and game cli
 
 The player supplies a local Minecraft installation from any discovered or manually selected launcher folder. Nexpert reads the selected version metadata, JAR and asset index as read-only inputs. GUI images, fonts, block models, terrain and gameplay code are separate concerns: finding a texture file alone cannot make a Minecraft menu or world work. Every asset lookup has a version-aware path and a safe fallback; no Minecraft game files enter GitHub releases, CI, or Nexpert-owned storage.
 
+Launcher import is an adapter boundary: the initial catalog targets Official Minecraft, Legacy, Prism/MultiMC, Modrinth and CurseForge layouts, with a manual game-directory option for other launchers. Each adapter resolves a selected version to explicit metadata, client JAR, libraries and assets directory. Forge/Fabric/NeoForge profiles can be detected before their runtime/classpath support is implemented; detecting them must not claim their Java mods run in the Rust game.
+
+The title-screen path must resolve the version's shared assets index as well as its client JAR. Some client JAR entries such as the panorama faces are 1×1 placeholders; the full images live in the launcher's indexed object store. The asset preparation phase verifies the selected index and reports gaps before the game opens its menus.
+
 ## Performance boundary
 
 Nexpert's Rust client can be tuned independently from the launcher, but the original Java game is untouched. FPS and frame-time values are diagnostics until a stable same-machine baseline exists. Performance changes must be profiled on CPU/GPU and checked against the same parity fixtures before they are accepted.

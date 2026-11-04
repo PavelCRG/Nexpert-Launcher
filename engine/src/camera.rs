@@ -18,6 +18,13 @@ mod tests {
         camera.look(0.0, 200.0);
         assert!(camera.forward().y < 0.0);
     }
+
+    #[test]
+    fn moving_mouse_right_turns_camera_right() {
+        let mut camera = Camera::default();
+        camera.look(100.0, 0.0);
+        assert!(camera.forward().x > 0.0);
+    }
 }
 
 use glam::{Mat4, Vec3};
@@ -49,7 +56,7 @@ impl Camera {
     }
 
     pub fn look(&mut self, dx: f32, dy: f32) {
-        self.yaw -= dx * 0.0025;
+        self.yaw += dx * 0.0025;
         self.pitch = (self.pitch - dy * 0.0025).clamp(-1.54, 1.54);
     }
 

@@ -20,9 +20,22 @@ use crate::{
     world::{Vertex, WorldMesh},
 };
 
+#[cfg(test)]
+mod tests {
+    use super::render_is_suspended;
+    use winit::dpi::PhysicalSize;
+
+    #[test]
+    fn render_sleeps_when_window_is_minimized_or_unfocused() {
+        assert!(render_is_suspended(PhysicalSize::new(0, 0), true));
+        assert!(render_is_suspended(PhysicalSize::new(1280, 800), false));
+        assert!(!render_is_suspended(PhysicalSize::new(1280, 800), true));
+    }
+}
+
 pub fn run(mesh: WorldMesh, textures: [RgbaImage; 4]) -> Result<(), String> {
     let event_loop = EventLoop::new().map_err(|error| error.to_string())?;
-    event_loop.set_control_flow(ControlFlow::Poll);
+    event_loop.set_control_flow(ControlFlow::Wait);
     let mut app = App {
         mesh: Some(mesh),
         textures: Some(textures),
@@ -30,6 +43,7 @@ pub fn run(mesh: WorldMesh, textures: [RgbaImage; 4]) -> Result<(), String> {
         state: None,
         failure: None,
         suspended: false,
+        focused: true,
     };
     event_loop
         .run_app(&mut app)
@@ -47,6 +61,7 @@ struct App {
     state: Option<State>,
     failure: Option<String>,
     suspended: bool,
+    focused: bool,
 }
 
 impl ApplicationHandler for App {
@@ -88,15 +103,24 @@ impl ApplicationHandler for App {
         };
         match event {
             WindowEvent::CloseRequested => event_loop.exit(),
-            WindowEvent::Resized(size) => state.resize(size),
-            WindowEvent::Occluded(suspended) => self.suspended = suspended,
-            WindowEvent::Focused(false) => {
-                state.keys.clear();
-                state.cursor_locked = false;
-                window.set_cursor_visible(true);
-                let _ = window.set_cursor_grab(CursorGrabMode::None);
+            WindowEvent::Resized(size) => {
+                self.suspended = render_is_suspended(size, self.focused);
+                state.resize(size);
             }
-            WindowEvent::RedrawRequested => state.draw(window),
+            WindowEvent::Occluded(occluded) => {
+                self.suspended = occluded || render_is_suspended(window.inner_size(), self.focused);
+            }
+            WindowEvent::Focused(focused) => {
+                self.focused = focused;
+                self.suspended = render_is_suspended(window.inner_size(), focused);
+                if !focused {
+                    state.keys.clear();
+                    state.cursor_locked = false;
+                    window.set_cursor_visible(true);
+                    let _ = window.set_cursor_grab(CursorGrabMode::None);
+                }
+            }
+            WindowEvent::RedrawRequested if !self.suspended => state.draw(window),
             WindowEvent::KeyboardInput { event, .. } => {
                 if let PhysicalKey::Code(key) = event.physical_key {
                     if key == KeyCode::Escape && event.state == ElementState::Pressed {
@@ -135,6 +159,10 @@ impl ApplicationHandler for App {
             window.request_redraw();
         }
     }
+}
+
+fn render_is_suspended(size: PhysicalSize<u32>, focused: bool) -> bool {
+    !focused || size.width == 0 || size.height == 0
 }
 
 struct State {

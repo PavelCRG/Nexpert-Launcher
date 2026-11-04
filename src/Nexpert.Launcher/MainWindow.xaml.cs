@@ -12,6 +12,7 @@ public partial class MainWindow : Window
 {
     private readonly string _settingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Nexpert", "launcher.json");
     private string? _gameRoot;
+    private bool _clientRunning;
 
     public MainWindow() => InitializeComponent();
 
@@ -64,6 +65,7 @@ public partial class MainWindow : Window
         start.ArgumentList.Add("--assets-root"); start.ArgumentList.Add(Path.Combine(root, "assets"));
         start.ArgumentList.Add("--packs-root"); start.ArgumentList.Add(Path.Combine(root, "resourcepacks"));
         PlayButton.IsEnabled = false;
+        _clientRunning = true;
         try
         {
             using var process = Process.Start(start);
@@ -84,6 +86,7 @@ public partial class MainWindow : Window
         }
         finally
         {
+            _clientRunning = false;
             UpdateLaunchButton();
         }
     }
@@ -151,7 +154,7 @@ public partial class MainWindow : Window
         UpdateLaunchButton();
     }
 
-    private void UpdateLaunchButton() => PlayButton.IsEnabled = _gameRoot is not null && VersionPicker.SelectedItem is string;
+    private void UpdateLaunchButton() => PlayButton.IsEnabled = !_clientRunning && _gameRoot is not null && VersionPicker.SelectedItem is string;
 
     private void UpdateTexturePreview()
     {
