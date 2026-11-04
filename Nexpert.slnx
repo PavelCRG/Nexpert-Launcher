@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Nexpert.Launcher/Nexpert.Launcher.csproj" />
+  </Folder>
+</Solution>

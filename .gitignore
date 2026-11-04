@@ -1,0 +1,11 @@
+**/bin/
+**/obj/
+**/target/
+.vs/
+.idea/
+.superpowers/
+*.user
+*.suo
+*.pdb
+*.cache
+*.log
