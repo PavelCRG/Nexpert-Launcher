@@ -6,7 +6,7 @@ An unofficial Windows launcher and experimental Rust client for locally installe
 
 ## Current status
 
-The first milestone is a Windows launcher shell that discovers local game versions and resource packs, previews the vanilla grass-block texture from the selected local game JAR, and starts a Rust client preview that verifies local files. It does **not** render a world or apply resource packs yet. No performance claim is made until the renderer exists and is measured against a defined baseline.
+The early playable milestone discovers local game versions and resource packs, reads vanilla block textures from the selected local client JAR, and opens a small Rust-rendered voxel island with WASD and mouse-look controls. Enter captures the mouse; Escape closes the game. The window title shows a live FPS and frame-time estimate. This is a small prototype world, not Minecraft parity: it has no chunks, collision, block interaction, saves, account login, multiplayer, or resource-pack application. The shown FPS is not a benchmark and no performance improvement is claimed.
 
 ## Requirements
 
@@ -22,7 +22,7 @@ dotnet build Nexpert.slnx
 cargo build --manifest-path engine/Cargo.toml
 ```
 
-Run `src/Nexpert.Launcher/bin/Release/net10.0-windows/Nexpert.Launcher.exe`, choose a game's `versions/` folder or a launcher folder containing `instances/` or `profiles/`, select an installed version, and launch the preview. Common `game/`, `.minecraft/`, and `minecraft/` layouts are recognized. Select a custom instance folder directly when its launcher uses another layout. The selected folder is stored in the current user's Local AppData. Shared `assets/` is optional because the selected version's JAR carries the vanilla texture sample.
+Run `src/Nexpert.Launcher/bin/Release/net10.0-windows/Nexpert.Launcher.exe`, choose a game's `versions/` folder or a launcher folder containing `instances/` or `profiles/`, select an installed version, and press **Play World**. Common `game/`, `.minecraft/`, and `minecraft/` layouts are recognized. Select a custom instance folder directly when its launcher uses another layout. The selected folder is stored in the current user's Local AppData. The Rust client reads vanilla block textures directly from the selected version JAR. Controls: WASD to move, Space/Shift to fly up/down, Enter to capture the mouse, Escape to exit.
 
 The launcher reads version and resource-pack names from the chosen folder. It does not copy those files into this repository or download Minecraft files.
 

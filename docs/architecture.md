@@ -1,20 +1,24 @@
 # Architecture
 
-Nexpert keeps the desktop shell and game client in separate processes. The launcher owns local installation discovery, version selection, settings, and eventually updates. The Rust client owns resource loading and the real-time game loop. The process boundary lets each part be developed and measured independently.
+Nexpert consists of a C# WPF launcher and an independent native game client written in Rust. The launcher discovers local game installations, selects a version and starts the Rust process with explicit paths. Rust owns asset parsing, UI/game rendering, input, simulation, world storage, and the game loop. The first rendering target is Vulkan through wgpu.
+
+## The Horizon reference
+
+Horizon is a standalone Rust reimplementation with its own launcher and game client; it does not speed up an existing Java Minecraft process. Its useful engineering pattern is staged subsystem work with explicit vanilla behavior targets, differential tests, a parity ledger, and profiling. Its benchmark guide compares the Rust client and vanilla with the same world, camera path, settings and statistics code; it records startup/title/world/chunk times and frame distributions. A separate pacing run reports tail latency and slow-frame causes. Nexpert follows that method while keeping a C# launcher and initially targeting Windows plus vanilla 1.20.1. We use Horizon as an architectural reference, not as a source of copied code or bundled Minecraft assets.
+
+## Asset boundary
+
+The player supplies a local Minecraft installation from any discovered or manually selected launcher folder. Nexpert reads the selected version metadata, JAR and asset index as read-only inputs. GUI images, fonts, block models, terrain and gameplay code are separate concerns: finding a texture file alone cannot make a Minecraft menu or world work. Every asset lookup has a version-aware path and a safe fallback; no Minecraft game files enter GitHub releases, CI, or Nexpert-owned storage.
+
+## Performance boundary
+
+Nexpert's Rust client can be tuned independently from the launcher, but the original Java game is untouched. FPS and frame-time values are diagnostics until a stable same-machine baseline exists. Performance changes must be profiled on CPU/GPU and checked against the same parity fixtures before they are accepted.
+
+Each performance report should pin the build commit, game version, machine/GPU/driver, window size, graphics settings and camera path. Separate startup/world-loading measurements from steady-state FPS and frame pacing. Record repeated samples and show median and tail percentiles so a high average cannot conceal stutter. Compare with the locally installed vanilla game under matched settings; do not make a “Rust is faster” claim from a counter in one scene. Horizon's method is documented at [benchmark](https://github.com/horizon-rust/horizon/blob/main/docs/benchmark.md) and [graphics](https://github.com/horizon-rust/horizon/blob/main/docs/graphics.md).
 
 ## Current implementation
 
-- `src/Nexpert.Launcher`: WPF UI, common launcher instance-folder discovery (`instances/`, `profiles/`, `.minecraft/`, `minecraft/`, `game/`), local version and resource-pack discovery, vanilla texture preview from the selected JAR, persisted game-folder preference, and process launch.
-- `engine`: Rust command-line preview that checks the selected version JAR and optional shared asset indexes.
-- Game files remain in the user's selected installation. They are neither copied into the repository nor included in builds.
-
-## Milestones
-
-1. Finish launcher discovery and compatibility for the common instance layouts.
-2. Parse the selected asset index and resolve vanilla texture paths without copying asset files.
-3. Render one textured block and a controllable camera in Rust.
-4. Add chunk storage, meshing, lighting, world loading, and a measured performance baseline.
-5. Add Microsoft account ownership checks before any online-mode or official-service integration.
-6. Expand version support and compatibility through differential checks against vanilla behavior.
-
-The current preview is milestone 1 only. Listing resource packs does not mean the client can apply them. FPS and load-time improvements must be measured on matched hardware and scenes before being claimed.
+- `src/Nexpert.Launcher`: WPF UI, discovery of common launcher folder layouts, version/resource-pack listing, a local grass texture preview, and a Rust process launch with exit/error reporting.
+- `engine/src`: Rust argument validation, direct version-JAR texture decoding, a deterministic tiny voxel scene, camera controls, and wgpu/winit rendering.
+- The current client is a renderer smoke slice. It does not implement the Minecraft title screen, vanilla world generation, chunk streaming, collision, block interaction, saves, authentication, or multiplayer.
+- `docs/ROADMAP.md` defines the twenty staged deliverables and acceptance boundaries.

@@ -65,14 +65,14 @@
                                 <Rectangle Width="115" Height="115" Fill="#1B2824" Canvas.Left="195" Canvas.Top="390"/><Rectangle Width="115" Height="115" Fill="#304A38" Canvas.Left="310" Canvas.Top="390"/>
                             </Canvas>
                             <Rectangle Fill="#80101416"/>
-                            <StackPanel VerticalAlignment="Bottom" Margin="30,30,30,28"><TextBlock Text="YOUR NEXT WORLD" Foreground="{StaticResource Accent}" FontSize="10" FontWeight="Bold"/><TextBlock Text="Built for smooth play." FontSize="32" FontWeight="SemiBold" Margin="0,9,0,5"/><TextBlock Text="Choose a local game version to prepare your client." Foreground="#B4BEBA" FontSize="13"/></StackPanel>
-                            <Border HorizontalAlignment="Right" VerticalAlignment="Top" Margin="18" Background="#75101416" CornerRadius="6" Padding="10,7"><TextBlock Text="RUST · CLIENT PREVIEW" FontSize="9" Foreground="#D7DEDA" FontWeight="Bold"/></Border>
+                            <StackPanel VerticalAlignment="Bottom" Margin="30,30,30,28"><TextBlock Text="YOUR NEXT WORLD" Foreground="{StaticResource Accent}" FontSize="10" FontWeight="Bold"/><TextBlock Text="Built for smooth play." FontSize="32" FontWeight="SemiBold" Margin="0,9,0,5"/><TextBlock Text="Launch a small textured Rust voxel world from a local game install." Foreground="#B4BEBA" FontSize="13"/></StackPanel>
+                            <Border HorizontalAlignment="Right" VerticalAlignment="Top" Margin="18" Background="#75101416" CornerRadius="6" Padding="10,7"><TextBlock Text="RUST · PLAYABLE ALPHA" FontSize="9" Foreground="#D7DEDA" FontWeight="Bold"/></Border>
                         </Grid>
                     </Border>
                     <Border Grid.Row="2" Background="{StaticResource Panel}" BorderBrush="#273031" BorderThickness="1" CornerRadius="12" Padding="18">
                         <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                             <StackPanel><TextBlock Text="SELECTED VERSION" Foreground="{StaticResource Muted}" FontSize="9" FontWeight="Bold"/><ComboBox x:Name="VersionPicker" Width="230" HorizontalAlignment="Left" Margin="0,9,0,0" SelectionChanged="VersionPicker_SelectionChanged"/></StackPanel>
-                            <Button x:Name="PlayButton" Grid.Column="1" Content="▶   LAUNCH PREVIEW" VerticalAlignment="Bottom" Click="PlayButton_Click" IsEnabled="False"/>
+                            <Button x:Name="PlayButton" Grid.Column="1" Content="▶   PLAY WORLD" VerticalAlignment="Bottom" Click="PlayButton_Click" IsEnabled="False"/>
                         </Grid>
                     </Border>
                 </Grid>

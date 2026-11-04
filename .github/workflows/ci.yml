@@ -17,5 +17,7 @@ jobs:
         run: dotnet build Nexpert.slnx --configuration Release
       - name: Check Rust formatting
         run: cargo fmt --manifest-path engine/Cargo.toml -- --check
+      - name: Test Rust client
+        run: cargo test --manifest-path engine/Cargo.toml
       - name: Build Rust client
-        run: cargo check --manifest-path engine/Cargo.toml
+        run: cargo build --release --manifest-path engine/Cargo.toml

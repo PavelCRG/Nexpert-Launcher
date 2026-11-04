@@ -46,30 +46,45 @@ public partial class MainWindow : Window
         UpdateTexturePreview();
     }
 
-    private void PlayButton_Click(object sender, RoutedEventArgs e)
+    private async void PlayButton_Click(object sender, RoutedEventArgs e)
     {
         var root = _gameRoot;
         var version = VersionPicker.SelectedItem as string;
         var engine = FindEngine();
         if (root is null || version is null || engine is null)
         {
-            GameHint.Text = "Build the Rust preview client with `cargo build --manifest-path engine/Cargo.toml`, then try again.";
+            GameHint.Text = "Build the Rust game client with `cargo build --release --manifest-path engine/Cargo.toml`, then try again.";
             return;
         }
 
-        var start = new ProcessStartInfo(engine) { UseShellExecute = false, WorkingDirectory = Path.GetDirectoryName(engine)! };
+        var start = new ProcessStartInfo(engine) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true, WorkingDirectory = Path.GetDirectoryName(engine)! };
         start.ArgumentList.Add("--game-root"); start.ArgumentList.Add(root);
         start.ArgumentList.Add("--version"); start.ArgumentList.Add(version);
+        start.ArgumentList.Add("--seed"); start.ArgumentList.Add("42");
         start.ArgumentList.Add("--assets-root"); start.ArgumentList.Add(Path.Combine(root, "assets"));
         start.ArgumentList.Add("--packs-root"); start.ArgumentList.Add(Path.Combine(root, "resourcepacks"));
+        PlayButton.IsEnabled = false;
         try
         {
-            Process.Start(start);
-            GameHint.Text = $"Rust preview started for Minecraft {version}. The current build checks local resources; 3D rendering is not implemented yet.";
+            using var process = Process.Start(start);
+            if (process is null) throw new InvalidOperationException("The game client did not start.");
+            var output = process.StandardOutput.ReadToEndAsync();
+            var error = process.StandardError.ReadToEndAsync();
+            GameHint.Text = $"Nexpert game client started for Minecraft {version}. WASD moves; press Enter to capture the mouse, Esc to exit.";
+            await process.WaitForExitAsync();
+            var details = (await error).Trim();
+            await output;
+            GameHint.Text = process.ExitCode == 0
+                ? "Game client closed. Choose a version and press Play World to launch again."
+                : $"Game client stopped with an error: {(string.IsNullOrEmpty(details) ? "No diagnostic was returned." : details)}";
         }
         catch (Exception ex) when (ex is IOException or System.ComponentModel.Win32Exception or InvalidOperationException)
         {
-            GameHint.Text = "Could not start the Rust preview. Build it with `cargo build --manifest-path engine/Cargo.toml`.";
+            GameHint.Text = "Could not start the Rust game client. Build it with `cargo build --release --manifest-path engine/Cargo.toml`.";
+        }
+        finally
+        {
+            UpdateLaunchButton();
         }
     }
 
@@ -216,6 +231,9 @@ public partial class MainWindow : Window
 
     private static string? FindEngine()
     {
+        var packaged = Path.Combine(AppContext.BaseDirectory, "engine", "nexpert-engine.exe");
+        if (File.Exists(packaged)) return packaged;
+
         for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
         {
             if (!Directory.Exists(Path.Combine(directory.FullName, ".git"))) continue;
